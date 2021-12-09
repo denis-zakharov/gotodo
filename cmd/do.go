@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
+	"github.com/denis-zakharov/gotodo/db"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +22,24 @@ var doCmd = &cobra.Command{
 				ids = append(ids, id)
 			}
 		}
-		fmt.Println(ids)
+		tasks, err := db.ReadTasks()
+		if err != nil {
+			fmt.Println("Failed to read tasks:", err.Error())
+			os.Exit(1)
+		}
+		for _, id := range ids {
+			if id <= 0 || id > len(tasks) {
+				fmt.Println("Invalid task number:", id)
+				continue
+			}
+			task := tasks[id-1]
+			err := db.DeleteTask(task.Key)
+			if err != nil {
+				fmt.Println("Failed to delete task:", err.Error())
+			} else {
+				fmt.Printf("Completed %v\n", task)
+			}
+		}
 	},
 }
 
